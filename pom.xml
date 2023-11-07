@@ -8,6 +8,7 @@
   <name>Archetype - codingTasks</name>
   <url>http://maven.apache.org</url>
   <modules>
+    <module>file-downloader</module>
 
   </modules>
   <properties>
