@@ -1,23 +1,26 @@
+import ch.qos.logback.classic.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class FileDownloader {
 
+public class FileDownloader {
+    private static final Logger logger = (Logger) LoggerFactory.getLogger(FileDownloader.class);
     public static void main(String[] args) {
         if (args.length != 2) {
-            System.out.println("Usage: java FileDownloaderWithProgressBar <URL> <outputFile>");
+           logger.info("Usage: java FileDownloaderWithProgressBar <URL> <outputFile>");
             System.exit(1);
         }
-
         String fileURL = args[0];
         String outputFile = args[1];
 
         try {
             downloadFile(fileURL, outputFile);
-            System.out.println("\nFile downloaded successfully!");
+            logger.info("\nFile downloaded successfully!");
         } catch (IOException e) {
-            System.err.println("Error: " + e.getMessage());
+            logger.error(e.getMessage());
         }
     }
 
@@ -28,7 +31,7 @@ public class FileDownloader {
         int responseCode = connection.getResponseCode();
         if (responseCode == HttpURLConnection.HTTP_OK) {
             long contentLength = connection.getContentLengthLong();
-            System.out.println("File size: " + contentLength + " bytes");
+            logger.info("File size: " + contentLength + " bytes");
 
             try (InputStream inputStream = connection.getInputStream();
                  FileOutputStream outputStream = new FileOutputStream(outputFile)) {
@@ -40,6 +43,7 @@ public class FileDownloader {
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, bytesRead);
                     totalBytesRead += bytesRead;
+
                     displayProgressBar(totalBytesRead,contentLength);
                 }
 
@@ -50,19 +54,10 @@ public class FileDownloader {
         }
     }
 
-    public static void displayProgressBar(int bytesRead, long contentLength) {
-        int progress = (int) (bytesRead * 1.0 / contentLength * 100);
-        System.out.print("\r[");
-
-        for (int i = 0; i < 50; i++) {
-            if (i < progress / 2) {
-                System.out.print("=");
-            } else {
-                System.out.print(" ");
-            }
-        }
-        System.out.print("] " + progress + "%");
-
+    public static void displayProgressBar(long current, long total) {
+        int progress = (int) (current * 100 / total);
+        System.out.println("\r[" + "=".repeat(progress) + " ".repeat(100 - progress) + "] " + progress + "%");
+// used System.out.println for download progress bar, logger doesn't work correctly
     }
 
 }
