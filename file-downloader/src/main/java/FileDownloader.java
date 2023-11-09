@@ -1,7 +1,9 @@
 import ch.qos.logback.classic.Logger;
+import org.apache.commons.cli.*;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -13,27 +15,42 @@ public class FileDownloader {
     private static final Logger logger = (Logger) LoggerFactory.getLogger(FileDownloader.class);
 
     public static void main(String[] args) {
-        if (args.length != 2) {
-            logger.info("Usage: java FileDownloaderWithProgress <fileURL> <outputFile>");
-            //example : java -jar .\file-downloader-1.0-SNAPSHOT-jar-with-dependencies.jar http://212.183.159.230/5MB.zip test.zip
-            return;
-        }
+        Options options = new Options();
+        options.addOption("h", "help", false, "Help message");
+        options.addOption("o", "output", true, "Output file name");
+        options.addOption("u", "url", true, "URL of the file to download");
 
-        String fileURL = args[0];
-        String outputFile = args[1];
+        CommandLineParser parser = new DefaultParser();
 
         try {
-            downloadFileWithProgress(fileURL, outputFile, 3); // Retry 3 times on connection loss
-            logger.info("File downloaded successfully.");
-        } catch (IOException e) {
+            CommandLine cmd = parser.parse(options, args);
+
+            if (cmd.hasOption("help") || cmd.getOptions().length == 0) {
+                printHelp(options);
+            } else if (cmd.hasOption("url") && cmd.hasOption("output")) {
+                String fileURL = cmd.getOptionValue("url");
+                String outputFile = cmd.getOptionValue("output");
+                int maxRetries = 3; // Maximum number of connection retries
+                downloadFileWithRetries(fileURL, outputFile, maxRetries);
+                logger.info("File downloaded successfully.");
+            } else {
+                logger.error("Missing required options.");
+                printHelp(options);
+            }
+        } catch (ParseException e) {
+            logger.error(e.getMessage());
+            printHelp(options);
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             logger.error("File download failed.");
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
+    private static void printHelp(Options options) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("FileDownloaderWithReconnect", options);
+    }
 
-    public static void downloadFileWithProgress(String fileURL, String outputFile, int maxRetries) throws IOException, InterruptedException {
+    public static void downloadFileWithRetries(String fileURL, String outputFile, int maxRetries) throws IOException, InterruptedException {
         int retries = 0;
         boolean downloadComplete = false;
 
@@ -74,7 +91,7 @@ public class FileDownloader {
                 int progress = (int) (100.0 * totalBytesRead / contentLength);
                 System.out.print("\r[" + "=".repeat(progress / 2) + " ".repeat(50 - progress / 2) + "] " + progress + "%");
             }   //used System.out.print for downloading progress bar
-
+            System.out.println("\n");
         }
     }
 }
