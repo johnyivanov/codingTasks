@@ -12,13 +12,14 @@ import java.net.URL;
 public class WikipediaSearch {
     static BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     private static final Logger logger = LoggerFactory.getLogger(WikipediaSearch.class);
+    static String urlWiki = "https://en.wikipedia.org/w/api.php?action=query";
 
-public static HttpURLConnection urlConnection(String url1) throws IOException {
+    public static HttpURLConnection urlConnection(String url1) throws IOException {
     URL url = new URL(url1);
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setRequestMethod("GET");
 
-    logger.info("Connection request");
+        logger.info("Connection request");
     int responseCode = connection.getResponseCode();
     if (responseCode == HttpURLConnection.HTTP_OK) {
         logger.info("Connection OK");
@@ -42,9 +43,9 @@ public static HttpURLConnection urlConnection(String url1) throws IOException {
     }
      public static void querySearch(String query) {
     try {
-            // Construct the URL for the Wikipedia API search
-            String queryUrl = "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + query + "&format=json";
-            HttpURLConnection connection = urlConnection(queryUrl);
+        // Construct the URL for the Wikipedia API search
+        String queryUrl = urlWiki + "&list=search&srsearch=" + query + "&format=json";
+        HttpURLConnection connection = urlConnection(queryUrl);
 
         // Parse the JSON response
         JSONObject jsonResponse = new JSONObject(getBufferedReaderResponse(connection).toString());
@@ -52,7 +53,7 @@ public static HttpURLConnection urlConnection(String url1) throws IOException {
         JSONArray searchResults = queryObject.getJSONArray("search");
 
         if (searchResults.length() == 0) {
-                    System.out.println("No results found on Wikipedia for the query: " + query);
+                    logger.info("No results found on Wikipedia for the query: " + query);
                 } else {
                     logger.info("Search results for: " + query);
                     for (int i = 0; i < searchResults.length(); i++) {
@@ -60,8 +61,8 @@ public static HttpURLConnection urlConnection(String url1) throws IOException {
                         String title = result.getString("title");
                         String snippet = result.getString("snippet");
 
-                        System.out.println((i + 1) + ". " + title);
-                        System.out.println(snippet.toString() + "\n");
+                        logger.info((i + 1) + ". " + title);
+                        logger.info(snippet.toString() + "\n");
 
                     }
                 }
@@ -72,7 +73,7 @@ public static HttpURLConnection urlConnection(String url1) throws IOException {
 
     public static void articleSearch(String articleTitle) {
 
-        String articleUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&titles="
+        String articleUrl = urlWiki + "&prop=extracts&exintro&explaintext&titles="
                 + articleTitle.replace(" ", "_") + "&format=json";
 
         try {
@@ -84,9 +85,9 @@ public static HttpURLConnection urlConnection(String url1) throws IOException {
             if (startIndex >= 0 && endIndex > startIndex) {
                 String articleText = jsonString.substring(startIndex + 11, endIndex);
                 articleText = articleText.replace("\\n", "\n"); // Unescape newline characters
-                System.out.println(articleText);
+                logger.info(articleText);
             } else {
-                System.out.println("Article not found or API response format has changed.");
+                logger.info("Article not found or API response format has changed.");
             }
 
         } catch (Exception e) {
@@ -95,11 +96,11 @@ public static HttpURLConnection urlConnection(String url1) throws IOException {
     }
 
     public static void  main(String[] args) throws IOException {
-        System.out.print("Enter your Wikipedia search query: ");
+        logger.info("Enter your Wikipedia search query: ");
         String query = reader.readLine();
         querySearch(query);
 
-        System.out.print("Enter an article: ");
+        logger.info("Enter an article: ");
         String articleTitle = reader.readLine();
         articleSearch(articleTitle);
 

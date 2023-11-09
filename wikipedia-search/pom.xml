@@ -9,4 +9,7 @@
     <artifactId>wikipedia-search</artifactId>
     <name>Archetype - wikipedia-search</name>
     <url>http://maven.apache.org</url>
+    <dependencies>
+
+    </dependencies>
 </project>
