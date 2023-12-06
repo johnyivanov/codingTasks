@@ -2,6 +2,7 @@ import ch.qos.logback.classic.Logger;
 import org.apache.commons.cli.*;
 import org.slf4j.LoggerFactory;
 
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -41,13 +42,12 @@ public class FileDownloader {
             logger.error(e.getMessage());
             printHelp(options);
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            logger.error("File download failed.");
+            logger.error("File download failed.", e);
         }
     }
     private static void printHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("FileDownloaderWithReconnect", options);
+        formatter.printHelp("FileDownloader", options);
     }
 
     public static void downloadFileWithRetries(String fileURL, String outputFile, int maxRetries) throws IOException, InterruptedException {
@@ -90,7 +90,7 @@ public class FileDownloader {
                 // Display a progress bar
                 int progress = (int) (100.0 * totalBytesRead / contentLength);
                 System.out.print("\r[" + "=".repeat(progress / 2) + " ".repeat(50 - progress / 2) + "] " + progress + "%");
-            }   //used System.out.print for downloading progress bar
+            }   //used System.out.print for  progress bar
             System.out.println("\n");
         }
     }
